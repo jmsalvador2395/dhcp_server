@@ -1,0 +1,30 @@
+******************************************************************
+
+Received packet from 0.0.0.0:68
+OP: 1
+HTYPE: 1
+HLEN: 6
+HOPS: 0
+XID: c5 30 70 bd
+SECS: 0 0
+FLAGS: 0 0
+Client IP: 0 0 0 0
+Server IP: 0 0 0 0
+Gateway IP: 0 0 0 0
+Client HW Address:
+		 0 0 0 0
+		4c 66 41 5f
+		e7 84 0 0
+		0 0 0 0
+******************************************************************
+
+Waiting for data...
+
+
+
+
+
+
+
+
+
