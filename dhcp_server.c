@@ -107,13 +107,13 @@ int main(int argc, char *argv[]){
 				printf("%02x ",buffer[index++]);
 			printf("\n");
 			
-			endloop=index+80;
+			endloop=index+64;
 			printf("Server Host Name:\n\t");
 			while(index<endloop)
 				printf("%02x ",buffer[index++]);
 			printf("\n");
 		
-			endloop=index+144;
+			endloop=index+128;
 			printf("Boot File Name:\n\t");
 			while(index<endloop)
 				printf("%02x ",buffer[index++]);
@@ -125,7 +125,18 @@ int main(int argc, char *argv[]){
 				printf("%02x ",buffer[index++]);
 			printf("\n");
 
-
+			unsigned char option;
+			
+			option=buffer[index++];
+			while(option!=0xff){
+				printf("Option: %02x\n",option);
+				int length=0|buffer[index++];
+				printf("\tLength: %d\n",length);
+				for(int i=0;i<length;i++)
+					printf("\t\t%02x\n",buffer[index++]);
+				option=buffer[index++];
+			}
+			printf("Option: %02x (end)\n",option);
 			printf("***********************************************************************************************************************\n\n");
 		}
 	}
