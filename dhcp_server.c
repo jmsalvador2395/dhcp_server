@@ -57,16 +57,16 @@ int main(int argc, char *argv[]){
 			printf("Received packet from %s:%d\n\n",inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
 			printf("***********************************************************************************************************************\n\n");
 			int index=0;
-			printf("OP:\n\t%02x\n", buffer[index++]);
+			printf("Message Type:\n\t%02x\n", buffer[index++]);
 
-			printf("HTYPE:\n\t%02x\n", buffer[index++]);
+			printf("Hardware Type:\n\t%02x\n", buffer[index++]);
 
-			printf("HLEN:\n\t%02x\n", buffer[index++]);
+			printf("Hardware Address Length:\n\t%02x\n", buffer[index++]);
 
-			printf("HOPS:\n\t%02x\n", buffer[index++]);
+			printf("Hops:\n\t%02x\n", buffer[index++]);
 
 			int endloop=index+4;
-			printf("XID:\n\t");
+			printf("Transaction ID:\n\t");
 			while(index<endloop)
 				printf("%02x ",buffer[index++]);
 			printf("\n");
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){
 			printf("Seconds Elapsed:\n\t%02x %02x\n",buffer[index],buffer[index+1]);
 			index+=2;
 
-			printf("FLAGS:\n\t%02x %02x\n",buffer[index], buffer[index+1]);
+			printf("Flags:\n\t%02x %02x\n",buffer[index], buffer[index+1]);
 			index+=2;
 
 			endloop=index+4;
