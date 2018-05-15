@@ -13,7 +13,7 @@
 
 void proccess_client_message(unsigned char *buff);
 
-void send_offer_message(
+void send_offer_message();
 int main(int argc, char *argv[]){
 	int server_fd;
 	SOCKET server_skt;
