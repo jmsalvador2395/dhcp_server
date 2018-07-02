@@ -73,6 +73,7 @@ int main(int argc, char *argv[]){
 }
 
 void proccess_client_message(unsigned char *buff){
+	//read the discover message
 	int index=0;
 	printf("Message Type:\n\t%02x\n", buff[index++]);
 
@@ -155,6 +156,7 @@ void proccess_client_message(unsigned char *buff){
 	}
 	printf("Option: %02x (end)\n",option);
 	printf("***********************************************************************************************************************\n\n");
-
+	
+	//end reading discover message
 	return;
 }

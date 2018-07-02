@@ -1,5 +1,7 @@
 MADE FOR WINDOWS
 
-This is a simple implementation of a dhcp server.
-I'm making this to allocate just 1 ip so that you can ssh/telnet into the
-machine since it comes out of the box using dhcp.
+This is a simple implementation of a dhcp server. Some machines (such as the
+Procurve switches) come out of the box with the ability to telnet/ssh into it.
+
+The scope of this project is small: implement the basic setting of a host IP
+so that you can configure it without having to make a serial connection.
