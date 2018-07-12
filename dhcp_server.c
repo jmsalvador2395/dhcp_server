@@ -11,7 +11,7 @@
 
 #define END 0xff
 
-void proccess_client_message(unsigned char *buff);
+void process_client_message(unsigned char *buff);
 
 void send_offer_message();
 int main(int argc, char *argv[]){
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]){
 		else{
 			printf("Received packet from %s:%d\n\n",inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
 			printf("***********************************************************************************************************************\n\n");
-			proccess_client_message(buffer);
+			process_client_message(buffer);
 
 		}
 	}
@@ -72,80 +72,83 @@ int main(int argc, char *argv[]){
 	
 }
 
-void proccess_client_message(unsigned char *buff){
+void process_client_message(unsigned char *buff){
+
+
+
+
+
+
+	int endloop; //delete this
+
+
+
+
 	//read the discover message
 	int index=0;
-	printf("Message Type:\n\t%02x\n", buff[index++]);
+	unsigned char msg_type=buff[index++];
+	unsigned char hw_type=buff[index++];
+	unsigned char hw_addr_len=buff[index++];
+	unsigned char hops=buff[index++];
 
-	printf("Hardware Type:\n\t%02x\n", buff[index++]);
+	unsigned char xid[4];
+	for(int i=0;i<4;i++)
+		xid[i]=buff[index++];
 
-	printf("Hardware Address Length:\n\t%02x\n", buff[index++]);
-
-	printf("Hops:\n\t%02x\n", buff[index++]);
-
-	int endloop=index+4;
-	printf("Transaction ID:\n\t");
-	while(index<endloop)
-		printf("%02x ",buff[index++]);
-	printf("\n");
-
-	printf("Seconds Elapsed:\n\t%02x %02x\n",buff[index],buff[index+1]);
+	unsigned char seconds_elapsed[2]={buff[index], buff[index+2]};
+	index+=2;
+	
+	unsigned char flags[2]={buff[index], buff[index+1]};
 	index+=2;
 
-	printf("Flags:\n\t%02x %02x\n",buff[index], buff[index+1]);
-	index+=2;
+	unsigned char client_ip[4];
+	for(int i=0;i<4;i++)
+		client_ip[i]=buff[index++];
 
-	endloop=index+4;
-	printf("Client IP:\n\t");
-	while(index<endloop)
-		printf("%02x ",buff[index++]);
-	printf("\n");
+	unsigned char your_ip[4];
+	for(int i=0;i<4;i++)
+		your_ip[i]=buff[index++];
 
-	endloop=index+4;
-	printf("Your (client) IP:\n\t");
-	while(index<endloop)
-		printf("%02x ",buff[index++]);
-	printf("\n");
+	unsigned char next_server_ip[4];
+	for(int i=0;i<4;i++)
+		next_server_ip[i]=buff[index++];
 
-	endloop=index+4;
-	printf("Next Server IP:\n\t");
-	while(index<endloop)
-		printf("%02x ",buff[index++]);
-	printf("\n");
+	unsigned char relay_ip[4];
+	for(int i=0;i<4;i++)
+		relay_ip[i]=buff[index++];
 
-	endloop=index+4;
-	printf("Relay Agent IP:\n\t");
-	while(index<endloop)
-		printf("%02x ",buff[index++]);
-	printf("\n");
+	unsigned char mac_address[16];
+	for(int i=0;i<16;i++)
+		mac_address[i]=buff[index++];
 
-	endloop=index+16;
-	printf("Client MAC Address:\n\t");
-	while(index<endloop)
-		printf("%02x ",buff[index++]);
-	printf("\n");
+	unsigned char server_hostname[64];
+	for(int i=0;i<64;i++)
+		server_hostname[i]=buff[index++];
+
+	unsigned char boot_file_name[128];
+	for(int i=0;i<128;i++)
+		boot_file_name[i]=buff[index++];
 	
-	endloop=index+64;
-	printf("Server Host Name:\n\t");
-	while(index<endloop)
-		printf("%02x ",buff[index++]);
-	printf("\n");
+	unsigned char magic_cookie[4];
+	for(int i=0;i<4;i++)
+		magic_cookie[i]=buff[index++];
 
-	endloop=index+128;
-	printf("Boot File Name:\n\t");
-	while(index<endloop)
-		printf("%02x ",buff[index++]);
-	printf("\n");
-	
-	endloop=index+4;
-	printf("Magic Cookie:\n\t");
-	while(index<endloop)
-		printf("%02x ",buff[index++]);
-	printf("\n");
+	int count=0;
+	int temp_index=index;
+	unsigned char temp;
+	printf("hi\n");
+	while(!buff[temp_index]&0xff){
+		count++;
+		temp_index++;
 
-	unsigned char option;
+	}
+	printf("%02x\n",buff[temp_index]);
+	printf("%d\n",count);
+
+//	unsigned char option;
+//	option=buff[index++];
 	
-	option=buff[index++];
+	/*
 	while(option!=0xff){
 		printf("Option: %02x\n",option);
 		int length=0|buff[index++];
@@ -156,7 +159,7 @@ void proccess_client_message(unsigned char *buff){
 	}
 	printf("Option: %02x (end)\n",option);
 	printf("***********************************************************************************************************************\n\n");
-	
+	*/
 	//end reading discover message
 	return;
 }
