@@ -20,7 +20,19 @@
  *
  */
 
-void print_client_message(unsigned char* buff){
+
+/*
+ * holds client data
+ * data types probably aren't right but i'll come back to fix it
+ */
+struct client{
+	int ip;
+	char hostname[63];
+	char macaddress[6];
+	long int time_leased;
+};
+
+void print_discover_message(unsigned char* buff){
 
 	//read the discover message
 	int index=0;
@@ -114,7 +126,16 @@ void print_client_message(unsigned char* buff){
 	return;
 }
 
+unsigned char* buildreply(unsigned char* clientmsg){
+	unsigned char* reply=malloc(BUFLEN*sizeof(char));
+	int msgposition=0;//keeps track of the position in the reply array
+	int replyposition=0;
+	
+	memset(reply, '\0', BUFLEN);
+	reply[0]='h';//delete this later
 
+	return reply;
+}
 
 int main(int argc, char *argv[]){
 	SOCKET skt;
@@ -152,7 +173,8 @@ int main(int argc, char *argv[]){
 		printf("Bind failed. Error code: %d\n",error);
 		exit(EXIT_FAILURE);
 	}
-	puts("Bind done");
+
+	printf("Bind done\n");
 
 	while(1){
 		printf("Waiting for data...\n");
@@ -165,10 +187,14 @@ int main(int argc, char *argv[]){
 			exit(EXIT_FAILURE);
 		}
 		else{
-			printf("Received packet from %s:%d\n\n",inet_ntoa(client.sin_addr), ntohs(client.sin_port));
+			printf("Received packet from %s:%d\n\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
 			printf("***********************************************************************************************************************\n\n");
-			print_client_message(buffer);
-			unsigned char reply[BUFLEN] = "hi\n";
+			print_discover_message(buffer);
+
+			
+			unsigned char* reply;
+			reply=buildreply(buffer);
+
 			if(sendto(skt, reply, recv_len, 0, (struct sockaddr*) &client, slen) == SOCKET_ERROR){
 				error=WSAGetLastError();
 				printf("recvfrom() failed. Error code: %d\n", error);
@@ -180,6 +206,7 @@ int main(int argc, char *argv[]){
 					exit(EXIT_FAILURE);
 			}
 			*/
+			free(reply);
 		}
 	}
 	return 0;
