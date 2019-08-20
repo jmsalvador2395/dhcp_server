@@ -14,7 +14,7 @@ struct session{
 };
 
 /*
- * basic struct for bst implementation.
+ * node struct for bst implementation.
  *
  * for now i'll just use the mac address (converted to long int) as the key
  * could potentially cause problems but it's not like i'm making this for that many users anyway.
@@ -27,7 +27,7 @@ struct node{
 /*
  * for now i'll use a simple bst to manage sessions
  */
-unsigned long int makekey(char macaddress[]);
+unsigned long int genkey(char macaddress[]);
 
 /*
  * return 1 for successful insert
