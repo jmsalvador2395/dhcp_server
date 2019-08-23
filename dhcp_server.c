@@ -122,6 +122,7 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 
 			case 0x37://parameter request list
 				unsigned char requestlist[optionlength];
+				int listlength=optionlength;
 				for(int i=0; i<optionlength; i++)
 					requestlist[i]=buff[msgposition++];
 				break;
@@ -179,11 +180,13 @@ int main(int argc, char *argv[]){
 		fflush(stdout);
 
 		memset(buffer,'\0',BUFLEN);
+		//receive dhcp message
 		if((recv_len=recvfrom(skt, buffer, BUFLEN, 0, (struct sockaddr*) &client, &slen))==SOCKET_ERROR){
 			error=WSAGetLastError();
 			printf("recvfrom() failed. Error code: %d\n", error);
 			exit(EXIT_FAILURE);
 		}
+		//gets here if there weren't any errors receiving
 		else{
 			printf("Received packet from %s:%d\n\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
 			printf("***********************************************************************************************************************\n\n");
