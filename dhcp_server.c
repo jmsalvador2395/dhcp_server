@@ -36,99 +36,107 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 	int msgposition=0;//keeps track of the position in the reply array
 	int replyposition=0;
 	
+	char reply[BUFLEN];
 	memset(reply, '\0', BUFLEN);
 	reply[0]='h';//delete this later
 
-	unsigned char msg_type=buff[msgposition++];
-	unsigned char hw_type=buff[msgposition++];
-	unsigned char hw_addr_len=buff[msgposition++];
-	unsigned char hops=buff[msgposition++];
+	unsigned char msg_type=clientmsg[msgposition++];
+	unsigned char hw_type=clientmsg[msgposition++];
+	unsigned char hw_addr_len=clientmsg[msgposition++];
+	unsigned char hops=clientmsg[msgposition++];
 
 	//xid is always 4 bytes (8 hex characters)
 	unsigned char xid[4];
 	for(int i=0;i<4;i++)
-		xid[i]=buff[msgposition++];
+		xid[i]=clientmsg[msgposition++];
 
 	
 	//seconds elapsed is always 2 byte (4 hex characters)
-	unsigned char seconds_elapsed[2]={buff[msgposition], buff[msgposition+2]};
+	unsigned char seconds_elapsed[2]={clientmsg[msgposition], clientmsg[msgposition+2]};
 	msgposition+=2;
 	
 	//bootp flags are always 2 bytes
 	//usually all zeros but may need to set the first bit to 1 due to my implementation (broadcast flag)
-	unsigned char flags[2]={buff[msgposition], buff[msgposition+1]};
+	unsigned char flags[2]={clientmsg[msgposition], clientmsg[msgposition+1]};
 	msgposition+=2;
 
 	//always 4 bytes (32 bits, 8 hex characters)
 	unsigned char client_ip[4];
 	for(int i=0;i<4;i++)
-		client_ip[i]=buff[msgposition++];
+		client_ip[i]=clientmsg[msgposition++];
 
 	//always 4 bytes
 	unsigned char your_client_ip[4];
 	for(int i=0;i<4;i++)
-		your_ip[i]=buff[msgposition++];
+		your_client_ip[i]=clientmsg[msgposition++];
 
 	//always 4 bytes
 	unsigned char next_server_ip[4];
 	for(int i=0;i<4;i++)
-		next_server_ip[i]=buff[msgposition++];
+		next_server_ip[i]=clientmsg[msgposition++];
 
 	//usually all zeros. won't worry about this until maybe later
 	unsigned char relay_ip[4];
 	for(int i=0;i<4;i++)
-		relay_ip[i]=buff[msgposition++];
+		relay_ip[i]=clientmsg[msgposition++];
 
 	//client mac is always 6 bytes but 16 bytes total is used (last 10 are used for padding)
 	unsigned char mac_address[16];
 	for(int i=0;i<16;i++)
-		mac_address[i]=buff[msgposition++];
+		mac_address[i]=clientmsg[msgposition++];
 
 	//uses 64 bytes total. shouldn't have to worry about putting anything in this
 	unsigned char server_hostname[64];
 	for(int i=0;i<64;i++)
-		server_hostname[i]=buff[msgposition++];
+		server_hostname[i]=clientmsg[msgposition++];
 
 	//uses 128 bytes total. also shouldn't have to worry about this yet
 	unsigned char boot_file_name[128];
 	for(int i=0;i<128;i++)
-		boot_file_name[i]=buff[msgposition++];
+		boot_file_name[i]=clientmsg[msgposition++];
 
 	//indicates that it's a dhcp message. always 63 82 53 63
 	unsigned char magic_cookie[4];
 	for(int i=0;i<4;i++)
-		magic_cookie[i]=buff[msgposition++];
-
+		magic_cookie[i]=clientmsg[msgposition++];
+	
 	//read dhcp options until 0xFF (end) is read
 	unsigned char option;
-	option=buff[msgposition++];
+	option=clientmsg[msgposition++];
 
 	/*
 	 * this is where we process the dhcp options
 	 */
 	while(option!=0xff){
-	
-		int optionlength=buff[msgposition++];
+		int optionlength=clientmsg[msgposition++];
+		unsigned char *hostname, *requestlist;
+		char bitflags='0';
 		switch(option){
 			case 0x0c://host name
-				unsigned char hostname[optionlength];
+				hostname=malloc(optionlength*sizeof(char));
 				for(int i=0; i<optionlength; i++)
-					hostname[i]=buff[msgposition++];
+					hostname[i]=clientmsg[msgposition++];
+				printf("2\n");
 				break;
 
 			case 0x35://dhcp message type
-				unsigned char msg_type=buff[msgposition++]
+				unsigned char msg_type=clientmsg[msgposition++];
+				printf("1\n");
 				break;
 
 			case 0x37://parameter request list
-				unsigned char requestlist[optionlength];
+				requestlist=malloc(optionlength*sizeof(char));
 				int listlength=optionlength;
 				for(int i=0; i<optionlength; i++)
-					requestlist[i]=buff[msgposition++];
+					requestlist[i]=clientmsg[msgposition++];
+				printf("3\n");
 				break;
 		}
 		option=msgposition++;
 	}
+
+	free(requestlist);
+	free(hostname);
 
 
 
@@ -192,7 +200,7 @@ int main(int argc, char *argv[]){
 			printf("***********************************************************************************************************************\n\n");
 			
 			unsigned char* reply=malloc(BUFLEN*sizeof(char));
-			replylen=BUFLEN
+			int replylen=BUFLEN;//i don't really need this but i'm also not sure why i put this in here so i'll leave it
 			reply=buildreply(buffer, BUFLEN);
 
 			client.sin_addr.s_addr=inet_addr("255.255.255.255");//not sure if i have to keep this

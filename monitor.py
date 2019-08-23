@@ -2,7 +2,7 @@ import socket
 
 if __name__ == '__main__':
 	HOST='127.0.0.1'
-	PORT=68 #should be 68
+	PORT=67 #should be 68
 	BUFLEN=1024
 
 	skt=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
