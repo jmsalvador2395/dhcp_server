@@ -109,39 +109,47 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 	 */
 	while(option!=0xff){
 		int optionlength=clientmsg[msgposition++];
+		printf("optionlength: %02x\n", optionlength);
 		unsigned char *hostname, *requestlist;
 		char bitflags='0';
+		printf("hi\n");
 		switch(option){
 			case 0x0c://host name
-				hostname=malloc(optionlength*sizeof(char));
+				printf("2\n");
+				hostname=(char *)malloc(optionlength*sizeof(char));
 				for(int i=0; i<optionlength; i++)
 					hostname[i]=clientmsg[msgposition++];
-				printf("2\n");
 				break;
 
 			case 0x35://dhcp message type
-				unsigned char msg_type=clientmsg[msgposition++];
 				printf("1\n");
+				unsigned char msg_type=clientmsg[msgposition++];
+				printf("message type: %d\n", (int) msg_type);
 				break;
 
 			case 0x37://parameter request list
-				requestlist=malloc(optionlength*sizeof(char));
+				printf("3\n");
+				requestlist=(char *)malloc(optionlength*sizeof(char));
 				int listlength=optionlength;
 				for(int i=0; i<optionlength; i++)
 					requestlist[i]=clientmsg[msgposition++];
-				printf("3\n");
+				break;
+			default:
+				printf("option: %02x\n", option);
 				break;
 		}
 		option=msgposition++;
+		printf("new option: %02x\n", option);
+		free(requestlist);
+		free(hostname);
+		printf("got here\n");
 	}
 
-	free(requestlist);
-	free(hostname);
 
 
 
-
-	return reply;
+	return "hello\n";
+	//return reply;
 }
 
 int main(int argc, char *argv[]){
@@ -203,13 +211,15 @@ int main(int argc, char *argv[]){
 			int replylen=BUFLEN;//i don't really need this but i'm also not sure why i put this in here so i'll leave it
 			reply=buildreply(buffer, BUFLEN);
 
-			client.sin_addr.s_addr=inet_addr("255.255.255.255");//not sure if i have to keep this
+			//client.sin_addr.s_addr=inet_addr("255.255.255.255");//not sure if i have to keep this
+			/*
 			if(sendto(skt, reply, strlen(reply), 0, (struct sockaddr*) &client, slen) == SOCKET_ERROR){
 				error=WSAGetLastError();
 				printf("sendto() failed. Error code: %d\n", error);
 				exit(EXIT_FAILURE);
 			}
-			printf("Response sent\n");
+			*/
+			printf("Response sent (not really)\n");
 			/*
 			if (sendto(s, buf, recv_len, 0, (struct sockaddr*) &si_other, slen) == SOCKET_ERROR){
 					printf("sendto() failed with error code : %d" , WSAGetLastError());
