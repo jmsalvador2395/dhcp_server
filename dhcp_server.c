@@ -108,11 +108,10 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 	 * this is where we process the dhcp options
 	 */
 	while(option!=0xff){
-		int optionlength=clientmsg[msgposition++];
-		printf("optionlength: %02x\n", optionlength);
+		int optionlength=(int) clientmsg[msgposition++];
+		printf("option: %d\noptionlength: %d\n", option, optionlength);
 		unsigned char *hostname, *requestlist;
 		char bitflags='0';
-		printf("hi\n");
 		switch(option){
 			case 0x0c://host name
 				printf("2\n");
@@ -120,6 +119,7 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 				for(int i=0; i<optionlength; i++)
 					hostname[i]=clientmsg[msgposition++];
 				break;
+				free(hostname);
 
 			case 0x35://dhcp message type
 				printf("1\n");
@@ -133,22 +133,20 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 				int listlength=optionlength;
 				for(int i=0; i<optionlength; i++)
 					requestlist[i]=clientmsg[msgposition++];
+				free(requestlist);
 				break;
 			default:
-				printf("option: %02x\n", option);
+				printf("defaulted to option: %d\n", (int) option);
+				for(int i=0; i<optionlength; i++)
+					msgposition++;
 				break;
 		}
-		option=msgposition++;
-		printf("new option: %02x\n", option);
-		free(requestlist);
-		free(hostname);
-		printf("got here\n");
+		option=clientmsg[msgposition++];
 	}
 
 
 
-
-	return "hello\n";
+	return "sup\n";
 	//return reply;
 }
 
@@ -209,7 +207,7 @@ int main(int argc, char *argv[]){
 			
 			unsigned char* reply=malloc(BUFLEN*sizeof(char));
 			int replylen=BUFLEN;//i don't really need this but i'm also not sure why i put this in here so i'll leave it
-			reply=buildreply(buffer, BUFLEN);
+			strcpy(reply, buildreply(buffer, BUFLEN));
 
 			//client.sin_addr.s_addr=inet_addr("255.255.255.255");//not sure if i have to keep this
 			/*
