@@ -3,8 +3,10 @@
 
 #include "dhcpcontroller.h"
 
+#define BUFLEN 512
 
-unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
+
+int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replymsg, int* replymsglen){
 	int msgpos=0;//keeps track of the position in the reply array
 
 	unsigned char msg_type=clientmsg[msgpos++];
@@ -70,6 +72,7 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 	//read dhcp options until 0xFF (end) is read
 	unsigned char option;
 	option=clientmsg[msgpos++];
+	unsigned char dhcp_msg_type;
 
 	/*
 	 * this is where we process the dhcp options
@@ -90,8 +93,8 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 
 			case 0x35://dhcp message type
 				printf("1\n");
-				unsigned char msg_type=clientmsg[msgpos++];
-				printf("message type: %d\n", (int) msg_type);
+				dhcp_msg_type=clientmsg[msgpos++];
+				printf("message type: %d\n", (int) dhcp_msg_type);
 				break;
 
 			case 0x37://parameter request list
@@ -115,7 +118,7 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 	 * start building the reply message in this section
 	 */
 	int repos=0; //position in reply string
-	char reply[BUFLEN];
+	unsigned char reply[BUFLEN];
 	memset(reply, '\0', BUFLEN);
 
 
@@ -125,14 +128,16 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 		reply[repos++]=0x2;//0x2 indicates a Boot Reply message
 	}
 	else{
-		return "invalid message";//temporary
+		return 1;//temporary
 	}
 
 	reply[repos++]=hw_addr_len;
 	reply[repos++]=hops;
 	for(int i=0; i<4; i++)
 		reply[repos++]=xid[i];
-	reply[repos++]=seconds_elapsed;
+
+	reply[repos++]=seconds_elapsed[0];
+	reply[repos++]=seconds_elapsed[1];
 
 	/*
 	 * i'm pretty sure that the broadcast flag should be set to 1 but
@@ -142,11 +147,153 @@ unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len){
 	reply[repos++]=0x8;
 	reply[repos++]=0;//reserved bootp flags
 	
+	//client ip address
+	//the packets i've looked at seem to all leave this at 0.0.0.0
+	//kinda feels cheesy
+	for(int i=0; i<4; i++)
+		reply[repos++]=0x0;	
+
+	/*
+	 * offered client ip
+	 * definitely cheezin it
+	 * add function later to pick from a list of IPs
+	 */
+	reply[repos++]=192;
+	reply[repos++]=168;
+	reply[repos++]=0;
+	reply[repos++]=2;
+
+	/*
+	 * server ip (192.168.0.1 for now)
+	 * feels like i'm cheezin here too tbh
+	 * but i'll do something about it later
+	 */
+	reply[repos++]=192;
+	reply[repos++]=168;
+	reply[repos++]=0;
+	reply[repos++]=1;
+
+	/*
+	 * relay agent IP
+	 * maybe it's not that cheesy idk
+	 */ 
+	for(int i=0; i<4; i++)
+		reply[repos++]=0x0;	
+
+	//client mac address (with 10 bytes of padding)
+	for(int i=0; i<16; i++)
+		reply[repos++]=mac_address[i];
+
+	//server hostname	
+	//captured packets seem to always keep this at 0
+	for(int i=0; i<64; i++)
+		reply[repos++]=0;
+
+	//magic cookie
+	reply[repos++]=0x63;
+	reply[repos++]=0x82;
+	reply[repos++]=0x53;
+	reply[repos++]=0x63;
+
+	/*
+	 * this is the section where i start adding in options
+	 * for now i'll just manually put them in (mega cheese)
+	 */
+
+	//message type option (53)
+	reply[repos++]=0x35;//option 53
+	reply[repos++]=0x1;//length 1
+	if(dhcp_msg_type == 0x1){
+		reply[repos++]=0x2;//offer
+	}
+	else if(dhcp_msg_type == 0x3){
+		reply[repos++]=0x5;//ack
+	}
+
+	//subnet mask (option 1)
+	reply[repos++]=0x1;//option 1
+	reply[repos++]=4;//option length
+	reply[repos++]=0xff;
+	reply[repos++]=0xff;
+	reply[repos++]=0xff;
+	reply[repos++]=0x0;
+
+	//time offset (option 2)
+	reply[repos++]=0x2;
+	reply[repos++]=0x4;
+	reply[repos++]=0;
+	reply[repos++]=0;
+	reply[repos++]=0;
+	reply[repos++]=0;
+
+	
+	//router (option 3)
+	reply[repos++]=0x3;//option 3
+	reply[repos++]=0x4;//length
+	//192.168.0.254
+	reply[repos++]=192;
+	reply[repos++]=168;
+	reply[repos++]=0;
+	reply[repos++]=254;
+
+	//TTL (option 23)
+	reply[repos++]=0x17;
+	reply[repos++]=0x1;
+	reply[repos++]=0x40;//64
+	
+	//lease time (option 51)
+	reply[repos++]=0x33;
+	reply[repos++]=0x4;
+	//14 days or 1209600 seconds
+	reply[repos++]=0x00;
+	reply[repos++]=0x12;
+	reply[repos++]=0x75;
+	reply[repos++]=0x00;
+
+	//server identifier (option 54)
+	reply[repos++]=0x36;
+	reply[repos++]=0x4;
+	//192.168.0.1
+	reply[repos++]=192;
+	reply[repos++]=168;
+	reply[repos++]=0;
+	reply[repos++]=1;
+
+	//renewal time (option 58)
+	reply[repos++]=0x3a;
+	reply[repos++]=0x4;
+	//7 days or 604800 seconds
+	reply[repos++]=0x00;
+	reply[repos++]=0x09;
+	reply[repos++]=0x3a;
+	reply[repos++]=0x80;
+	
+	//rebindingn time (option 59)
+	reply[repos++]=0x3b;
+	reply[repos++]=0x4;
+	//12 days, 6 hours or 1058400 seconds
+	reply[repos++]=0x00;
+	reply[repos++]=0x10;
+	reply[repos++]=0x26;
+	reply[repos++]=0x60;
+
+	//end
+	reply[repos++]=0xff;
 	//TODO currently here at building the reply message
 	
 	
+	for(int i=0; i<repos; i++)
+		replymsg[i]=reply[i];
+	*replymsglen=repos;
+	printf("%d\n", *replymsglen);
 
-	return "sup\n";
-	//return reply;
+	printf("******before copy********\n");
+	for(int i=0; i<32; i++){
+		for(int j=0; j<16; j++){
+			printf("%02x ", reply[(16*i)+j]);
+		}
+		printf("\n");
+	}
+	return 0;
 }
 

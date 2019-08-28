@@ -1,5 +1,6 @@
 #ifndef _DHCPCONTROLLER_H_
 #define _DHCPCONTROLLER_H_
 
-unsigned char* buildreply(unsigned char* clientmsg, int client_msg_len);
+int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replymsg, int* replymsglen);
+
 #endif
