@@ -285,15 +285,7 @@ int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replym
 	for(int i=0; i<repos; i++)
 		replymsg[i]=reply[i];
 	*replymsglen=repos;
-	printf("%d\n", *replymsglen);
 
-	printf("******before copy********\n");
-	for(int i=0; i<32; i++){
-		for(int j=0; j<16; j++){
-			printf("%02x ", reply[(16*i)+j]);
-		}
-		printf("\n");
-	}
 	return 0;
 }
 

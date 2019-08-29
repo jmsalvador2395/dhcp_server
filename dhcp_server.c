@@ -81,6 +81,7 @@ int main(int argc, char *argv[]){
 
 	printf("Bind done\n");
 
+	unsigned char reply[BUFLEN];
 	while(1){
 		printf("Waiting for data...\n");
 		fflush(stdout);
@@ -97,37 +98,27 @@ int main(int argc, char *argv[]){
 			printf("Received packet from %s:%d\n\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
 			printf("***********************************************************************************************************************\n\n");
 			
-			unsigned char reply[BUFLEN];
 			memset(reply,'\0',BUFLEN);
 
 			int replylen=BUFLEN;//i don't really need this but i'm also not sure why i put this in here so i'll leave it
 			buildreply(buffer, BUFLEN, reply, &replylen);
-			//print my reply
-			printf("*********after copy**********\n");
-			for(int i=0; i<32; i++){
-				for(int j=0; j<16; j++){
-					printf("%02x ", reply[(16*i)+j]);
-				}
-				printf("\n");
+
+			client.sin_addr.s_addr=INADDR_BROADCAST;//not sure if i have to keep this
+
+			char broadcast='1';
+			if(setsockopt(skt, SOL_SOCKET, SO_BROADCAST, &broadcast,sizeof(broadcast))>0){
+				printf("Failed to set broadcast option\n");
+				return 1;
 			}
 
-			//client.sin_addr.s_addr=inet_addr("255.255.255.255");//not sure if i have to keep this
-			/*
-			if(sendto(skt, reply, strlen(reply), 0, (struct sockaddr*) &client, slen) == SOCKET_ERROR){
+			if(sendto(skt, reply, replylen, 0, (struct sockaddr*) &client, slen) == SOCKET_ERROR){//change tsmtr to client, SO_BROADCAST was 0
 				error=WSAGetLastError();
 				printf("sendto() failed. Error code: %d\n", error);
 				exit(EXIT_FAILURE);
 			}
-			*/
-			printf("Response sent (not really)\n");
-			/*
-			if (sendto(s, buf, recv_len, 0, (struct sockaddr*) &si_other, slen) == SOCKET_ERROR){
-					printf("sendto() failed with error code : %d" , WSAGetLastError());
-					exit(EXIT_FAILURE);
-			}
-			*/
-			free(reply);
+			printf("got here\n");
 		}
+		printf("got here too\n");
 	}
 	return 0;
 	
