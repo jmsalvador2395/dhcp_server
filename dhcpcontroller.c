@@ -79,12 +79,10 @@ int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replym
 	 */
 	while(option!=0xff){
 		int optionlength=(int) clientmsg[msgpos++];
-		printf("option: %d\noptionlength: %d\n", option, optionlength);
 		unsigned char *hostname, *requestlist;
 		char bitflags='0';
 		switch(option){
 			case 0x0c://host name
-				printf("2\n");
 				hostname=(char *)malloc(optionlength*sizeof(char));
 				for(int i=0; i<optionlength; i++)
 					hostname[i]=clientmsg[msgpos++];
@@ -92,13 +90,10 @@ int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replym
 				free(hostname);
 
 			case 0x35://dhcp message type
-				printf("1\n");
 				dhcp_msg_type=clientmsg[msgpos++];
-				printf("message type: %d\n", (int) dhcp_msg_type);
 				break;
 
 			case 0x37://parameter request list
-				printf("3\n");
 				requestlist=(char *)malloc(optionlength*sizeof(char));
 				int listlength=optionlength;
 				for(int i=0; i<optionlength; i++)
@@ -106,7 +101,6 @@ int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replym
 				free(requestlist);
 				break;
 			default:
-				printf("defaulted to option: %d\n", (int) option);
 				for(int i=0; i<optionlength; i++)
 					msgpos++;
 				break;
@@ -124,13 +118,13 @@ int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replym
 
 	//work on this later
 	if(msg_type == 1){
-		printf("BOOT REQUEST\n");
 		reply[repos++]=0x2;//0x2 indicates a Boot Reply message
 	}
 	else{
 		return 1;//temporary
 	}
-
+	
+	reply[repos++]=0x1;
 	reply[repos++]=hw_addr_len;
 	reply[repos++]=hops;
 	for(int i=0; i<4; i++)
@@ -144,7 +138,7 @@ int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replym
 	 * i'm keeping the line below just in case
 	 */
 	//reply[repos++]=0x0;
-	reply[repos++]=0x8;
+	reply[repos++]=0x80;
 	reply[repos++]=0;//reserved bootp flags
 	
 	//client ip address
@@ -189,6 +183,11 @@ int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replym
 	for(int i=0; i<64; i++)
 		reply[repos++]=0;
 
+	//boot file name
+	//captured packets seem to always keep this at 0
+	for(int i=0; i<128; i++)
+		reply[repos++]=0;
+
 	//magic cookie
 	reply[repos++]=0x63;
 	reply[repos++]=0x82;
@@ -205,9 +204,11 @@ int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replym
 	reply[repos++]=0x1;//length 1
 	if(dhcp_msg_type == 0x1){
 		reply[repos++]=0x2;//offer
+		printf("offering 192.168.0.2 to target\n");
 	}
 	else if(dhcp_msg_type == 0x3){
 		reply[repos++]=0x5;//ack
+		printf("ACKing 192.168.0.2 to target\n");
 	}
 
 	//subnet mask (option 1)
@@ -285,6 +286,17 @@ int buildreply(unsigned char* clientmsg, int clientmsglen, unsigned char* replym
 	for(int i=0; i<repos; i++)
 		replymsg[i]=reply[i];
 	*replymsglen=repos;
+
+	/*
+	 * this prints the packet
+	 *
+	for(int i=0; i<32; i++){
+		for(int j=0; j<16; j++){
+			printf("%02x ", reply[(16*i)+j]);
+		}
+		printf("\n");
+	}
+	*/
 
 	return 0;
 }

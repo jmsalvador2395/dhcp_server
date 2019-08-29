@@ -96,7 +96,6 @@ int main(int argc, char *argv[]){
 		//gets here if there weren't any errors receiving
 		else{
 			printf("Received packet from %s:%d\n\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
-			printf("***********************************************************************************************************************\n\n");
 			
 			memset(reply,'\0',BUFLEN);
 
@@ -116,9 +115,7 @@ int main(int argc, char *argv[]){
 				printf("sendto() failed. Error code: %d\n", error);
 				exit(EXIT_FAILURE);
 			}
-			printf("got here\n");
 		}
-		printf("got here too\n");
 	}
 	return 0;
 	
